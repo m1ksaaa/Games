@@ -1,0 +1,17 @@
+{
+  "name": "flakefall",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Flakefall - steer a falling snowflake; the weather you fly through grows its crystal. HTML5 game for CrazyGames.",
+  "scripts": {
+    "dev": "node tools/build.mjs --serve",
+    "build": "node tools/build.mjs",
+    "covers": "node tools/covers.mjs",
+    "test": "node tools/smoke-test.mjs"
+  },
+  "devDependencies": {
+    "@fontsource/fredoka": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
+    "esbuild": "^0.28.2"
+  }
+}

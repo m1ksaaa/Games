@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Flakefall</title>
+  <meta name="description" content="Steer a falling snowflake. The sky you fall through grows its crystal - no two snowflakes are alike." />
+  <link rel="preload" href="fonts/fredoka-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/nunito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="Flakefall"></canvas>
+
+    <!-- In-game HUD -->
+    <div id="hud" hidden>
+      <div class="hud-lens">
+        <canvas id="lens" width="160" height="160"></canvas>
+        <div class="lens-label"><span>Becoming</span><b id="hud-species">Hexagonal Plate</b></div>
+      </div>
+      <div class="hud-top">
+        <div class="hud-score"><b id="hud-score">0</b><span>beauty</span></div>
+        <div class="hud-arms" id="hud-arms" aria-label="Intact arms"></div>
+      </div>
+      <div class="hud-air">
+        <div class="air-name"><i id="hud-air-dot"></i><span id="hud-air">Dry Air</span></div>
+        <div class="air-read"><span id="hud-temp">-10 °C</span><span id="hud-hum">35%</span></div>
+        <div class="alt-bar"><div class="alt-fill" id="hud-alt-fill"></div></div>
+        <div class="alt-text" id="hud-alt">1200 m</div>
+        <ul class="legend" id="hud-legend"></ul>
+      </div>
+      <button class="icon-btn hud-pause" id="btn-pause" aria-label="Pause"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg></button>
+      <div class="toast" id="toast"></div>
+      <div class="combo" id="combo"></div>
+    </div>
+
+    <!-- Loading -->
+    <section class="screen" id="scr-loading">
+      <div class="loading"><div class="spinner"></div><p>Gathering clouds...</p></div>
+    </section>
+
+    <!-- Main menu -->
+    <section class="screen" id="scr-menu" hidden>
+      <div class="topbar">
+        <div class="toggles">
+          <button class="icon-btn" id="tg-music" aria-label="Music"></button>
+          <button class="icon-btn" id="tg-sfx" aria-label="Sound effects"></button>
+        </div>
+        <div class="frost-pill"><i class="frost-ico"></i><span id="menu-frost">0</span></div>
+      </div>
+      <div class="menu-col">
+        <h1 class="logo">Flake<span>fall</span></h1>
+        <p class="tagline">Steer a falling snowflake.<br />The sky you fall through grows its crystal.</p>
+        <div class="sky-picker">
+          <button class="icon-btn" id="sky-prev" aria-label="Previous sky"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <div class="sky-card" id="sky-card">
+            <b id="sky-name">Quiet Village</b>
+            <span id="sky-desc"></span>
+            <span class="sky-lock" id="sky-lock"></span>
+          </div>
+          <button class="icon-btn" id="sky-next" aria-label="Next sky"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+        <button class="btn primary big" id="btn-play">Play</button>
+        <div class="row">
+          <button class="btn" id="btn-album">Album <small id="album-count">0/13</small></button>
+          <button class="btn" id="btn-shop">Workshop</button>
+        </div>
+        <p class="hint" id="controls-hint">Mouse, A/D or arrow keys to steer</p>
+      </div>
+    </section>
+
+    <!-- Album -->
+    <section class="screen" id="scr-album" hidden>
+      <div class="panel wide">
+        <header class="panel-head">
+          <button class="btn small" data-back>Back</button>
+          <h2>Snowflake Album</h2>
+          <span class="count" id="album-count2">0/13</span>
+        </header>
+        <div class="album-grid" id="album-grid"></div>
+      </div>
+      <div class="detail" id="album-detail" hidden>
+        <div class="panel detail-card">
+          <canvas id="detail-canvas" width="300" height="300"></canvas>
+          <div class="detail-info">
+            <span class="rarity" id="detail-rarity"></span>
+            <h3 id="detail-name"></h3>
+            <p id="detail-fact"></p>
+            <p class="muted" id="detail-meta"></p>
+            <button class="btn" id="detail-close">Close</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Workshop -->
+    <section class="screen" id="scr-shop" hidden>
+      <div class="panel">
+        <header class="panel-head">
+          <button class="btn small" data-back>Back</button>
+          <h2>Workshop</h2>
+          <div class="frost-pill"><i class="frost-ico"></i><span id="shop-frost">0</span></div>
+        </header>
+        <ul class="shop-list" id="shop-list"></ul>
+      </div>
+    </section>
+
+    <!-- Pause -->
+    <section class="screen dim" id="scr-pause" hidden>
+      <div class="panel narrow center">
+        <h2>Paused</h2>
+        <button class="btn primary" id="btn-resume">Resume</button>
+        <div class="row">
+          <button class="btn" id="pz-music">Music</button>
+          <button class="btn" id="pz-sfx">Sound</button>
+        </div>
+        <button class="btn ghost" id="btn-quit">Quit to menu</button>
+      </div>
+    </section>
+
+    <!-- Fail / revive offer -->
+    <section class="screen dim" id="scr-fail" hidden>
+      <div class="panel narrow center">
+        <h2 id="fail-title">Your snowflake melted!</h2>
+        <p id="fail-text">Watch a short ad to refreeze it and keep falling.</p>
+        <button class="btn primary ad" id="btn-revive"><i class="ad-ico"></i>Refreeze</button>
+        <button class="btn ghost" id="btn-giveup">No thanks</button>
+      </div>
+    </section>
+
+    <!-- Result / photo -->
+    <section class="screen dim" id="scr-result" hidden>
+      <div class="panel result">
+        <div class="photo">
+          <canvas id="photo" width="420" height="420"></canvas>
+          <span class="specimen" id="res-specimen"></span>
+        </div>
+        <div class="res-info">
+          <span class="badge-new" id="res-new" hidden>New species!</span>
+          <span class="rarity" id="res-rarity"></span>
+          <h2 id="res-name">Stellar Dendrite</h2>
+          <ul class="res-stats" id="res-stats"></ul>
+          <div class="res-landing" id="res-landing"></div>
+          <div class="res-score"><span>Beauty</span><b id="res-score">0</b></div>
+          <div class="res-frost"><i class="frost-ico"></i>+<b id="res-frost">0</b><span id="res-best"></span></div>
+          <p class="res-unlock" id="res-unlock" hidden></p>
+          <div class="res-buttons">
+            <button class="btn ad" id="btn-double"><i class="ad-ico"></i>Double frost</button>
+            <button class="btn primary" id="btn-next">Next flake</button>
+            <button class="btn ghost small" id="btn-menu">Menu</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="flash" id="flash"></div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
