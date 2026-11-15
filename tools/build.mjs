@@ -2,7 +2,7 @@
 //   node tools/build.mjs          -> production build in dist/ + release/flakefall-crazygames.zip
 //   node tools/build.mjs --serve  -> dev server on http://localhost:8080 (rebuilds on save)
 import * as esbuild from 'esbuild';
-import { cpSync, rmSync, mkdirSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { cpSync, rmSync, mkdirSync, readdirSync, statSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, relative } from 'node:path';
 
@@ -63,4 +63,17 @@ if (serve) {
   if (existsSync(zipPath)) rmSync(zipPath);
   execFileSync('zip', ['-r', '-9', '-X', '-q', zipPath, '.'], { cwd: dist });
   console.log(`  -> ${relative(root, zipPath)} (${(statSync(zipPath).size / 1024).toFixed(1)} KB)`);
+
+  // single-file version for quick play-testing (open directly in any browser, no server, no SDK)
+  const fontData = (f) => `url(data:font/woff2;base64,${readFileSync(join(dist, 'fonts', f)).toString('base64')})`;
+  const css = readFileSync(join(dist, 'style.css'), 'utf8').replace(/url\('fonts\/([^']+)'\)/g, (_, f) => fontData(f));
+  const js = readFileSync(join(dist, 'game.js'), 'utf8').replace(/<\/script/gi, '<\\/script');
+  const html = readFileSync(join(dist, 'index.html'), 'utf8')
+    .replace(/\s*<link rel="preload"[^>]*>/g, '')
+    .replace(/\s*<script src="https:\/\/sdk\.crazygames\.com[^>]*><\/script>/, '')
+    .replace('<link rel="stylesheet" href="style.css" />', () => `<style>${css}</style>`)
+    .replace('<script src="game.js"></script>', () => `<script>${js}</script>`);
+  const playPath = join(releaseDir, 'flakefall-play.html');
+  writeFileSync(playPath, html);
+  console.log(`  -> ${relative(root, playPath)} (${(statSync(playPath).size / 1024).toFixed(1)} KB, play-test only - upload the zip to CrazyGames)`);
 }

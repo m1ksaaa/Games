@@ -76,6 +76,7 @@ Olyan játékot nem találtam, ahol **az útvonalad maga az ecset, ami a kristá
 ## Feltöltés a CrazyGames-re
 
 1. `release/flakefall-crazygames.zip`: ezt kell feltölteni (az `index.html` a zip gyökerében van).
+   - `release/flakefall-play.html` csak kipróbálásra van: egyetlen fájl, dupla kattintással megnyílik bármilyen böngészőben (telefonon is), CrazyGames SDK nélkül. Ezt **ne** töltsd fel.
 2. A [Developer Portalon](https://developer.crazygames.com) új játék → **HTML5**.
 3. **Kapcsold be a „Progress Save” opciót** a beküldésnél, különben a data modul (mentés) ki van kapcsolva. Ilyenkor a játék localStorage-ra vált, de a CrazyGames a data modult várja.
 4. Borítók: `covers/cover-landscape-1920x1080.png`, `covers/cover-portrait-800x1200.png`, `covers/cover-square-800x800.png`.
